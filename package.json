@@ -2,7 +2,7 @@
   "name": "codeowners-validator-companion",
   "displayName": "CODEOWNERS Validator Companion",
   "description": "Validates a CODEOWNERS file -- duplicated patterns, unmatched patterns, invalid owners, syntax errors, files with no owner, pattern shadowing. No data leaves your editor.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "publisher": "GapHunterLabs",
   "icon": "images/icon.png",
   "license": "Apache-2.0",
