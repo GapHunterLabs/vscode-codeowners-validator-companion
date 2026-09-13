@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { parseCodeowners, findDuplicatedPatterns, findInvalidOwners, findShadowedPatterns, matchesPattern, Violation } from './codeowners';
+import { recordHit } from './reviewPrompt';
 
 let diagnostics: vscode.DiagnosticCollection;
 
@@ -64,7 +65,7 @@ async function findUnmatchedPatternsAndUncoveredFiles(
   return { unmatchedPatterns, filesWithoutOwner };
 }
 
-async function refresh(document: vscode.TextDocument): Promise<void> {
+async function refresh(context: vscode.ExtensionContext, document: vscode.TextDocument): Promise<void> {
   if (!isCodeownersFile(document)) {
     diagnostics.delete(document.uri);
     return;
@@ -90,6 +91,7 @@ async function refresh(document: vscode.TextDocument): Promise<void> {
     const diagnostic = new vscode.Diagnostic(range, violation.message, severity);
     diagnostic.source = 'CODEOWNERS Validator Companion';
     diagnostic.code = violation.kind;
+    recordHit(context, `${document.uri.toString()}:${violation.line}`);
     return diagnostic;
   });
   diagnostics.set(document.uri, result);
@@ -99,11 +101,11 @@ export function activate(context: vscode.ExtensionContext): void {
   diagnostics = vscode.languages.createDiagnosticCollection('codeownersValidatorCompanion');
   context.subscriptions.push(diagnostics);
 
-  vscode.workspace.textDocuments.forEach((doc) => void refresh(doc));
+  vscode.workspace.textDocuments.forEach((doc) => void refresh(context, doc));
 
   context.subscriptions.push(
-    vscode.workspace.onDidOpenTextDocument((doc) => void refresh(doc)),
-    vscode.workspace.onDidSaveTextDocument((doc) => void refresh(doc)),
+    vscode.workspace.onDidOpenTextDocument((doc) => void refresh(context, doc)),
+    vscode.workspace.onDidSaveTextDocument((doc) => void refresh(context, doc)),
     vscode.workspace.onDidCloseTextDocument((document) => diagnostics.delete(document.uri)),
   );
 }
